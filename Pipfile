@@ -8,6 +8,8 @@ name = "pypi"
 [packages]
 
 python-dateutil = "*"
+flask = "*"
+flask-wtf = "*"
 
 
 [dev-packages]

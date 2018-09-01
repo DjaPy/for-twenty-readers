@@ -24,7 +24,8 @@ def wiki_version():
     full_moon = new_moon + 14
     if new_moon < vernal_equinox:
         day = full_moon + 30
-    if new_moon
+    if new_moon:
+        pass
 
 
 if __name__ == '__main__':
