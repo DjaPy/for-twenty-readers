@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "082124064f259f3e5d26dfd87c567cf533a5299e2e8e14ac821976313b9e0254"
+            "sha256": "7bc1bfdbbf05a0ae4d7562ed7b39a16977050409ab4a243ec1af3bd18d3550eb"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -35,6 +35,12 @@
                 "sha256:a080b744b7e345ccfcbc77954861cb05b3c63786e93f2b3875e0913d44b43f05"
             ],
             "version": "==1.0.2"
+        },
+        "flask-login": {
+            "hashes": [
+                "sha256:c815c1ac7b3e35e2081685e389a665f2c74d7e077cb93cecabaea352da4752ec"
+            ],
+            "version": "==0.4.1"
         },
         "flask-wtf": {
             "hashes": [
@@ -71,9 +77,9 @@
         },
         "openpyxl": {
             "hashes": [
-                "sha256:04091e034911a0afc531c3a15e5ae0b1b6a43654dbf63c187f47d20cdfefac1c"
+                "sha256:d3da4d6a78077d6f9fb1a1ec12d4aa500f7caa4661b8528538503b24ed72d632"
             ],
-            "version": "==2.5.6"
+            "version": "==2.5.7"
         },
         "ordereddict": {
             "hashes": [

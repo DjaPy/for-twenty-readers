@@ -11,6 +11,7 @@ python-dateutil = "*"
 flask = "*"
 flask-wtf = "*"
 openpyxl = "*"
+flask-login = "*"
 
 
 [dev-packages]
