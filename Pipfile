@@ -12,6 +12,8 @@ flask = "*"
 flask-wtf = "*"
 openpyxl = "*"
 flask-login = "*"
+pandas = "*"
+tox = "*"
 
 
 [dev-packages]
