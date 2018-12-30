@@ -5,11 +5,17 @@ from flask_login import logout_user
 from flask_login import login_required
 from werkzeug.urls import url_parse
 
+from datetime import datetime
+
 from app import app
 from app import db
 from app.models import User
 from app.forms import LoginForm
 from app.forms import RegistrationForm
+from app.forms import EditProfileForm
+from app.forms import AddCalendarKathismas
+
+from app.easter_ru import get_xls
 
 
 @app.route('/')
@@ -60,8 +66,7 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(
-            username=form.username.data, email=form.email.data)
+        user = User(username=form.username.data, email=form.email.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -70,6 +75,7 @@ def register():
     return render_template(
         'register.html', title='Register', form=form
     )
+
 
 @app.route('/user/<username>')
 @login_required
@@ -81,3 +87,38 @@ def user(username):
     ]
     return render_template('user.html', user=user, posts=posts)
 
+
+@app.before_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.utcnow()
+        db.session.commit()
+
+
+@app.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = EditProfileForm()
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.about_us = form.about_me.data
+        db.session.commit()
+        flash('Ваши изменения были сохранены.')
+        return redirect(url_for('edit_profile'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.about_me.data = current_user.about_me
+    return render_template(
+        'edit_profile.html', title='Edit Profile', form=form)
+
+
+@app.route('/add_calendar', methods=['GET', 'POST'])
+def add_calendar():
+    form = AddCalendarKathismas()
+    if form.validate_on_submit():
+        year = form.year.data
+        start_kathisma = form.start_kathisma.data
+        filename = get_xls(year, start_kathisma)
+        text_for_link = "Ссылка на файл"
+        render_template('link_file.html', filename=filename, text_for_link=text_for_link)
+    return render_template('add_year.html', form=form)
