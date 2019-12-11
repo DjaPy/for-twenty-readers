@@ -19,5 +19,5 @@ ENV FLASK_APP for_twenty.py
 RUN chown -R for_twenty:for_twenty ./
 USER for_twenty
 
-EXPOSE 5000
+EXPOSE 8765
 ENTRYPOINT ["./boot.sh"]

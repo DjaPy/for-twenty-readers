@@ -607,5 +607,7 @@ fabric.properties
 
 # Editor-based Rest Client
 .idea/httpRequests
-
+.vscode
 .idea
+graph_of_reading_of_the_psalter.xlsx
+migrations/versions/596bb584ed4e_add_about_user_and_last_sync.py

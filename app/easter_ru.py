@@ -3,6 +3,7 @@ import itertools
 from dateutil import easter
 from dateutil import utils
 from openpyxl import Workbook, worksheet
+from openpyxl.styles import Font, Fill, Alignment, colors
 from datetime import date, timedelta, datetime
 
 
@@ -16,7 +17,7 @@ def get_easter_day(year):
 def get_header_of_month(ws):
     month_name = {
         "B2": "ЯНВ", "C2": "ФЕВ", "D2": "МАРТ", "E2": "АПР",
-        "F2": "МАЙ", "G2": "ИЮН", "I2": "ИЮЛ", "H2": "АВГ",
+        "F2": "МАЙ", "G2": "ИЮН", "H2": "ИЮЛ", "I2": "АВГ",
         "J2": "СЕН", "K2": "ОКТ", "L2": "НОЯ", "M2": "ДЕК"
     }
     for cell_name, cell_value in month_name.items():
@@ -38,15 +39,20 @@ def get_number_days_in_year(year):
 def get_column_with_number_day(number_cell, ws):
     for number in range(1, 32):
         number_cell += 1
-        cell_name = 'A{}'.format(number_cell)
+        cell_name_left = 'A{}'.format(number_cell)
+        cell_name_right = 'N{}'.format(number_cell)
         cell_value = number
-        ws[cell_name] = cell_value
+        ws[cell_name_left] = cell_value
+        ws[cell_name_right] = cell_value
     return ws
 
 
-def get_list_date(start_no_reading, end_no_reading,
-                  start_kathisma, number_days_in_year,
-                  total_kathisma):
+def get_list_date(
+        start_no_reading,
+        end_no_reading,
+        start_kathisma,
+        number_days_in_year,
+):
     """Gets a list of dates with an interval, when you do not need to read.
     """
     loop_from_total_kathisma = [number for number in range(1, 21)]
@@ -105,7 +111,7 @@ def get_calendar_for_table(year):
 def create_calendar_for_reader(ws, calendar_table, all_kathisma, year):
     cell_step = 1
     frame_month = {(index + 1): symbol for index, symbol in enumerate(
-        ['B', 'C', 'D', 'E', 'F', 'G', 'I', 'H', 'J', 'K', 'L', 'M']
+        ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
     )}
     for month, days in calendar_table.items():
         cell_month = frame_month[month]
@@ -119,6 +125,19 @@ def create_calendar_for_reader(ws, calendar_table, all_kathisma, year):
             ws[cell_name] = all_kathisma.get(int(day_now), '')
 
 
+def add_style_cell(wb):
+    alignment_month = Alignment(
+        horizontal='center',
+        vertical='center',
+    )
+    font_month = Font(
+        name='Calibri',
+        size=16,
+        color=colors.RED,
+
+    )
+
+
 def get_xls(year, start_kathisma):
     wb = Workbook()
     name_out_file = "graph_of_reading_of_the_psalter.xlsx"
@@ -127,16 +146,23 @@ def get_xls(year, start_kathisma):
     start_no_reading, end_no_reading = get_boundary_days(easter_day)
     number_days_in_year = get_number_days_in_year(year)
     total_kathisma = 21
-    for number in range(1, 21):
+    for number in range(1, total_kathisma):
         all_kathismas = {}
         ws = wb.create_sheet("Кафизма {}".format(number))
         get_header_of_month(ws)
         number_cell_for_column = 2
         get_column_with_number_day(number_cell_for_column, ws)
-        all_kathismas = get_list_date(start_no_reading, end_no_reading, start_kathisma, number_days_in_year, total_kathisma)
+        all_kathismas = get_list_date(
+            start_no_reading,
+            end_no_reading,
+            start_kathisma,
+            number_days_in_year,
+        )
         create_calendar_for_reader(ws, calendar_table, all_kathismas, year)
+        if start_kathisma > 19:
+            start_kathisma = 0
         start_kathisma += 1
 
-
+    add_style_cell(wb)
     wb.save(filename=name_out_file)
     return name_out_file
