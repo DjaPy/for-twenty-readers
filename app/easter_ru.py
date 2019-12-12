@@ -2,8 +2,8 @@ import itertools
 
 from dateutil import easter
 from dateutil import utils
-from openpyxl import Workbook, worksheet
-from openpyxl.styles import Font, Fill, Alignment, colors
+from openpyxl import Workbook
+from openpyxl.styles import Font, Fill, Alignment, Border, Side, colors
 from datetime import date, timedelta, datetime
 
 
@@ -15,6 +15,16 @@ def get_easter_day(year):
 
 
 def get_header_of_month(ws):
+    alignment_month = Alignment(
+        horizontal='center',
+        vertical='center',
+    )
+    font_month = Font(
+        name='Calibri',
+        size=16,
+        color=colors.RED,
+
+    )
     month_name = {
         "B2": "ЯНВ", "C2": "ФЕВ", "D2": "МАРТ", "E2": "АПР",
         "F2": "МАЙ", "G2": "ИЮН", "H2": "ИЮЛ", "I2": "АВГ",
@@ -22,6 +32,9 @@ def get_header_of_month(ws):
     }
     for cell_name, cell_value in month_name.items():
         ws[cell_name] = cell_value
+        cell = ws[cell_name]
+        cell.alignment = alignment_month
+        cell.font = font_month
 
     return ws
 
@@ -37,6 +50,14 @@ def get_number_days_in_year(year):
 
 
 def get_column_with_number_day(number_cell, ws):
+    alignment_number_day = Alignment(
+        horizontal='center',
+        vertical='center',
+    )
+    font_number_day = Font(
+        name='Trebuchet MS',
+        size=12,
+    )
     for number in range(1, 32):
         number_cell += 1
         cell_name_left = 'A{}'.format(number_cell)
@@ -44,6 +65,13 @@ def get_column_with_number_day(number_cell, ws):
         cell_value = number
         ws[cell_name_left] = cell_value
         ws[cell_name_right] = cell_value
+        right_cell = ws[cell_name_right]
+        left_cell = ws[cell_name_left]
+        right_cell.alignment = alignment_number_day
+        right_cell.font = font_number_day
+        left_cell.alignment = alignment_number_day
+        left_cell.font = font_number_day
+
     return ws
 
 
@@ -108,7 +136,38 @@ def get_calendar_for_table(year):
     return table_year
 
 
+def add_number_kathisma(ws, number):
+    alignment_num_kathisma = Alignment(
+        horizontal='center',
+        vertical='center',
+    )
+    font_num_kathisma = Font(
+        name='Trebuchet MS',
+        size=16,
+    )
+    border_num_kathisma = Border(
+        top=Side(border_style='dashed', color=colors.BLACK),
+        bottom=Side(border_style='dashed', color=colors.BLACK),
+        left=Side(border_style='dashed', color=colors.BLACK),
+        right=Side(border_style='dashed', color=colors.BLACK),
+
+    )
+    ws['A2'] = number
+    cell_kathisma = ws['A2']
+    cell_kathisma.alignment = alignment_num_kathisma
+    cell_kathisma.font = font_num_kathisma
+    cell_kathisma.border = border_num_kathisma
+
+
 def create_calendar_for_reader(ws, calendar_table, all_kathisma, year):
+    alignment = Alignment(
+        horizontal='center',
+        vertical='center',
+    )
+    font = Font(
+        name='Trebuchet MS',
+        size=14,
+    )
     cell_step = 1
     frame_month = {(index + 1): symbol for index, symbol in enumerate(
         ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
@@ -123,19 +182,9 @@ def create_calendar_for_reader(ws, calendar_table, all_kathisma, year):
             date = datetime.strptime(datestr, '%m %d %Y')
             day_now = date.strftime('%j')
             ws[cell_name] = all_kathisma.get(int(day_now), '')
-
-
-def add_style_cell(wb):
-    alignment_month = Alignment(
-        horizontal='center',
-        vertical='center',
-    )
-    font_month = Font(
-        name='Calibri',
-        size=16,
-        color=colors.RED,
-
-    )
+            cell_kathisma = ws[cell_name]
+            cell_kathisma.alignment = alignment
+            cell_kathisma.font = font
 
 
 def get_xls(year, start_kathisma):
@@ -149,6 +198,7 @@ def get_xls(year, start_kathisma):
     for number in range(1, total_kathisma):
         all_kathismas = {}
         ws = wb.create_sheet("Кафизма {}".format(number))
+        add_number_kathisma(ws, number)
         get_header_of_month(ws)
         number_cell_for_column = 2
         get_column_with_number_day(number_cell_for_column, ws)
@@ -163,6 +213,5 @@ def get_xls(year, start_kathisma):
             start_kathisma = 0
         start_kathisma += 1
 
-    add_style_cell(wb)
     wb.save(filename=name_out_file)
     return name_out_file
