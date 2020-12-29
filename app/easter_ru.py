@@ -3,7 +3,7 @@ import itertools
 from dateutil import easter
 from dateutil import utils
 from openpyxl import Workbook
-from openpyxl.styles import Font, Fill, Alignment, Border, Side, colors
+from openpyxl.styles import Font, Alignment, Border, Side
 from datetime import date, timedelta, datetime
 
 
@@ -22,8 +22,7 @@ def get_header_of_month(ws):
     font_month = Font(
         name='Calibri',
         size=16,
-        color=colors.RED,
-
+        color='00FF8080',
     )
     month_name = {
         "B2": "ЯНВ", "C2": "ФЕВ", "D2": "МАРТ", "E2": "АПР",
@@ -146,10 +145,10 @@ def add_number_kathisma(ws, number):
         size=16,
     )
     border_num_kathisma = Border(
-        top=Side(border_style='dashed', color=colors.BLACK),
-        bottom=Side(border_style='dashed', color=colors.BLACK),
-        left=Side(border_style='dashed', color=colors.BLACK),
-        right=Side(border_style='dashed', color=colors.BLACK),
+        top=Side(border_style='dashed', color='00000000'),
+        bottom=Side(border_style='dashed', color='00000000'),
+        left=Side(border_style='dashed', color='00000000'),
+        right=Side(border_style='dashed', color='00000000'),
 
     )
     ws['A2'] = number
