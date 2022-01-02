@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "for-twenty-readers"
+version = "1.0.0"
+description = ""
+authors = ["djapy <djapy@yandex.ru>"]
+
+[tool.isort]
+line_length = 120
+force_grid_wrap = 0
+multi_line_output = 3
+use_parentheses = true
+include_trailing_comma = true
+
+[tool.poetry.dependencies]
+python = "^3.7"
+python-dateutil = "*"
+openpyxl = "*"
+uvicorn = "^0.16.0"
+fastapi = "^0.70.1"
+Jinja2 = "^3.0.3"
+python-multipart = "^0.0.5"
+
+
+[tool.poetry.dev-dependencies]
+isort = "^5.10.1"
+flake8 = "^4.0.1"
+mypy = "^0.930"
+types-python-dateutil = "^2.8.4"
+aiohttp = "^3.8.1"
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
+pytest-asyncio = "^0.16.0"
+pytest-aiohttp = "^0.3.0"
+Faker = "^11.1.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

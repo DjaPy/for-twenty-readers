@@ -1,20 +1,23 @@
 import itertools
+from datetime import date, datetime, timedelta
+from typing import Dict, List, Optional, Tuple
 
-from dateutil import easter
-from dateutil import utils
+from dateutil import easter, utils
+from dateutil.easter import EASTER_ORTHODOX
 from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment, Border, Side
-from datetime import date, timedelta, datetime
+from openpyxl.styles import Alignment, Border, Font, Side
+from openpyxl.worksheet.worksheet import Worksheet
+
+from src.const import OUT_FILE
 
 
-def get_easter_day(year):
+def get_easter_day(year: Optional[int] = None) -> date:
     if not year:
-        year = utils.datetime.now().year
-    type_calendar = 2
-    return easter.easter(year, type_calendar)
+        year = utils.today().year
+    return easter.easter(year, EASTER_ORTHODOX)
 
 
-def get_header_of_month(ws):
+def get_header_of_month(ws: Worksheet) -> Worksheet:
     alignment_month = Alignment(
         horizontal='center',
         vertical='center',
@@ -38,17 +41,16 @@ def get_header_of_month(ws):
     return ws
 
 
-def get_number_days_in_year(year):
+def get_number_days_in_year(year: int) -> int:
     days_leap_year = 366
     days_normal_year = 365
-    definition_year = ((year % 4 == 0 and year % 100 != 0) or (
-                year % 400 == 0))
+    definition_year = ((year % 4 == 0 and year % 100 != 0) or (year % 400 == 0))
     if definition_year:
         return days_leap_year
     return days_normal_year
 
 
-def get_column_with_number_day(number_cell, ws):
+def get_column_with_number_day(number_cell: int, ws: Worksheet) -> Worksheet:
     alignment_number_day = Alignment(
         horizontal='center',
         vertical='center',
@@ -75,33 +77,33 @@ def get_column_with_number_day(number_cell, ws):
 
 
 def get_list_date(
-        start_no_reading,
-        end_no_reading,
-        start_kathisma,
-        number_days_in_year,
-):
+    start_no_reading: date,
+    end_no_reading: date,
+    start_kathisma: int,
+    number_days_in_year: int,
+) -> Dict[int, int]:
     """Gets a list of dates with an interval, when you do not need to read.
     """
     loop_from_total_kathisma = [number for number in range(1, 21)]
     step_kathisma: int = 1
-    zero_loop_first = {(day+1): kathisma for day, kathisma in enumerate(range(start_kathisma, 21))}
+    zero_loop_first = {(day + 1): kathisma for day, kathisma in enumerate(range(start_kathisma, 21))}
     start_loop_first = len(zero_loop_first) + step_kathisma
     end_loop_first = int(start_no_reading.strftime('%j')) - 1
     start_zero_loop_second = int(end_no_reading.strftime('%j')) + 1
     gen_loop_first = [day for day in range(start_loop_first, (end_loop_first + 1))]
     loop_first = {
-        day: kathisma for day, kathisma in zip(
-        gen_loop_first, itertools.cycle(loop_from_total_kathisma))
+        day: kathisma for day, kathisma in zip(gen_loop_first, itertools.cycle(loop_from_total_kathisma))
     }
     end_number_kathisma_first_loop = loop_first[end_loop_first]
     start_number_kathisma_zero_loop_second = end_number_kathisma_first_loop + step_kathisma
-    zero_loop_second = {(start_zero_loop_second + day): kathisma for day, kathisma in
-                       enumerate(range(start_number_kathisma_zero_loop_second, 21))}
+    zero_loop_second = {
+        (start_zero_loop_second + day): kathisma for day, kathisma in
+        enumerate(range(start_number_kathisma_zero_loop_second, 21))
+    }
     start_loop_second = start_zero_loop_second + len(zero_loop_second)
     gen_loop_second = [day for day in range(start_loop_second, (number_days_in_year + 1))]
     loop_second = {
-        day: kathisma for day, kathisma in zip(
-        gen_loop_second, itertools.cycle(loop_from_total_kathisma))
+        day: kathisma for day, kathisma in zip(gen_loop_second, itertools.cycle(loop_from_total_kathisma))
     }
     all_year_loop = {}
     all_year_loop.update(zero_loop_first)
@@ -112,16 +114,16 @@ def get_list_date(
     return all_year_loop
 
 
-def get_boundary_days(easter_day):
+def get_boundary_days(easter_day: date) -> Tuple[date, date]:
     start_no_reading = easter_day - timedelta(days=3)
     end_no_reading = easter_day + timedelta(days=6)
     return start_no_reading, end_no_reading
 
 
-def get_calendar_for_table(year):
+def get_calendar_for_table(year: int) -> Dict[int, List[int]]:
     current_day = date(day=1, month=1, year=year)
     table_year = {}
-    current_day_list = []
+    current_day_list: List[int] = []
     current_month = 1
 
     while current_day.year == year:
@@ -135,7 +137,7 @@ def get_calendar_for_table(year):
     return table_year
 
 
-def add_number_kathisma(ws, number):
+def add_number_kathisma(ws: Worksheet, number: int) -> None:
     alignment_num_kathisma = Alignment(
         horizontal='center',
         vertical='center',
@@ -158,7 +160,12 @@ def add_number_kathisma(ws, number):
     cell_kathisma.border = border_num_kathisma
 
 
-def create_calendar_for_reader(ws, calendar_table, all_kathisma, year):
+def create_calendar_for_reader(
+    ws: Worksheet,
+    calendar_table: Dict[int, List[int]],
+    all_kathisma: Dict[int, int],
+    year: int
+) -> None:
     alignment = Alignment(
         horizontal='center',
         vertical='center',
@@ -186,9 +193,8 @@ def create_calendar_for_reader(ws, calendar_table, all_kathisma, year):
             cell_kathisma.font = font
 
 
-def get_xls(year, start_kathisma):
+def get_xls(year: int, start_kathisma: int) -> str:
     wb = Workbook()
-    name_out_file = "graph_of_reading_of_the_psalter.xlsx"
     calendar_table = get_calendar_for_table(year)
     easter_day = get_easter_day(year)
     start_no_reading, end_no_reading = get_boundary_days(easter_day)
@@ -196,7 +202,7 @@ def get_xls(year, start_kathisma):
     total_kathisma = 21
     for number in range(1, total_kathisma):
         all_kathismas = {}
-        ws = wb.create_sheet("Кафизма {}".format(number))
+        ws = wb.create_sheet("Чтец {}".format(number))
         add_number_kathisma(ws, number)
         get_header_of_month(ws)
         number_cell_for_column = 2
@@ -212,5 +218,5 @@ def get_xls(year, start_kathisma):
             start_kathisma = 0
         start_kathisma += 1
 
-    wb.save(filename=name_out_file)
-    return name_out_file
+    wb.save(filename=OUT_FILE)
+    return str(OUT_FILE)

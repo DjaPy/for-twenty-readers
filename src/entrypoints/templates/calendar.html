@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Year for calculate calendar</h1>
+    <form action="/get_calendar" method="post">
+        <p>
+            <label for="year">Year for calendar<br></label>
+            <input id="year" type="number" name="year">
+            {% for error in errors %}
+            <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+        </p>
+        <p>
+            <label for="start_kathisma">First kathisma in year<br></label>
+            <input id="start_kathisma" type="number" name="start_kathisma">
+            {% for error in errors %}
+            <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+        </p>
+        <input type="submit" value="Save">
+    </form>
+{% endblock %}

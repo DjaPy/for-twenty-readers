@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% if title %}
+        <title>{{ title }} - for twenty</title>
+        {% else %}
+        <title>Assistance to the curator of the reader</title>
+        {% endif %}
+    </head>
+    <body>
+        <div>For twenty</div>
+        {% block content %}{% endblock %}
+    </body>
+</html>
