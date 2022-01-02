@@ -6,6 +6,8 @@ ENV FORWARDED_ALLOW_IPS=* \
     PIP_NO_CACHE_DIR=1 \
     PYTHONPATH=/
 
+COPY ./pyproject.toml /
+
 RUN pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install --no-root --no-dev && \
@@ -13,4 +15,4 @@ RUN pip install poetry && \
 
 COPY src /src
 
-CMD ['python', '-m', 'src']
+CMD ["python3", "-m", "src"]

@@ -1,5 +1,3 @@
-import json
-
 import aiohttp
 import pytest
 from fastapi import status
