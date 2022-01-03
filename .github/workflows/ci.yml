@@ -44,4 +44,4 @@ jobs:
         run: poetry run mypy src/
 
       - name: Test with pytest
-        run: python -m pytest tests/ --cov src/
+        run: python3 -m pytest tests/ --cov src/
