@@ -81,6 +81,7 @@ def get_list_date(
     end_no_reading: date,
     start_kathisma: int,
     number_days_in_year: int,
+
 ) -> Dict[int, int]:
     """Gets a list of dates with an interval, when you do not need to read.
     """
@@ -114,14 +115,37 @@ def get_list_date(
     return all_year_loop
 
 
+def get_list_date_without_easter(start_day: int, end_no_reading: date, number_days_in_year: int) -> Dict[int, int]:
+    start_zero_loop_second = int(end_no_reading.strftime('%j')) + 1
+    if start_day < start_zero_loop_second:
+        start_day = start_zero_loop_second
+    loop_from_total_kathisma = [number for number in range(1, 21)]
+    step_kathisma: int = 1
+    start_number_kathisma_zero_loop_second = start_day + step_kathisma
+    zero_loop_second = {
+        (start_day + day): kathisma for day, kathisma in
+        enumerate(range(start_number_kathisma_zero_loop_second, 21))
+    }
+    start_loop_second = start_zero_loop_second + len(zero_loop_second)
+    gen_loop_second = [day for day in range(start_loop_second, (number_days_in_year + 1))]
+    loop_second = {
+        day: kathisma for day, kathisma in zip(gen_loop_second, itertools.cycle(loop_from_total_kathisma))
+    }
+    all_year_loop = {}
+    all_year_loop.update(zero_loop_second)
+    all_year_loop.update(loop_second)
+
+    return all_year_loop
+
+
 def get_boundary_days(easter_day: date) -> Tuple[date, date]:
     start_no_reading = easter_day - timedelta(days=3)
     end_no_reading = easter_day + timedelta(days=6)
     return start_no_reading, end_no_reading
 
 
-def get_calendar_for_table(year: int) -> Dict[int, List[int]]:
-    current_day = date(day=1, month=1, year=year)
+def get_calendar_for_table(start_calendar_date: date, year: int) -> Dict[int, List[int]]:
+    current_day = start_calendar_date
     table_year = {}
     current_day_list: List[int] = []
     current_month = 1
@@ -193,9 +217,12 @@ def create_calendar_for_reader(
             cell_kathisma.font = font
 
 
-def get_xls(year: int, start_kathisma: int) -> str:
+def get_xls(start_date: date, start_kathisma: int, year: Optional[int]) -> str:
+    if not year:
+        year = start_date.year
+    start_day_kathisma = start_date.timetuple().tm_yday
     wb = Workbook()
-    calendar_table = get_calendar_for_table(year)
+    calendar_table = get_calendar_for_table(start_date, year)
     easter_day = get_easter_day(year)
     start_no_reading, end_no_reading = get_boundary_days(easter_day)
     number_days_in_year = get_number_days_in_year(year)
@@ -205,14 +232,19 @@ def get_xls(year: int, start_kathisma: int) -> str:
         ws = wb.create_sheet("Чтец {}".format(number))
         add_number_kathisma(ws, number)
         get_header_of_month(ws)
-        number_cell_for_column = 2
+        number_cell_for_column = number_days_in_year
         get_column_with_number_day(number_cell_for_column, ws)
-        all_kathismas = get_list_date(
-            start_no_reading,
-            end_no_reading,
-            start_kathisma,
-            number_days_in_year,
-        )
+        if start_no_reading > start_date:
+            all_kathismas = get_list_date(
+                start_no_reading,
+                end_no_reading,
+                start_kathisma,
+                number_days_in_year,
+            )
+        else:
+            all_kathismas = get_list_date_without_easter(
+                start_day_kathisma, end_no_reading, number_days_in_year
+            )
         create_calendar_for_reader(ws, calendar_table, all_kathismas, year)
         if start_kathisma > 19:
             start_kathisma = 0
