@@ -14,7 +14,10 @@ from src.const import OUT_FILE
 def get_easter_day(year: Optional[int] = None) -> date:
     if not year:
         year = utils.today().year
-    return easter.easter(year, EASTER_ORTHODOX)
+    easter_date = easter.easter(year, EASTER_ORTHODOX)
+    if easter_date < datetime.now().date():
+        easter_date = easter.easter(year + 1, EASTER_ORTHODOX)
+    return easter_date
 
 
 def get_header_of_month(ws: Worksheet) -> Worksheet:
@@ -217,7 +220,7 @@ def create_calendar_for_reader(
             cell_kathisma.font = font
 
 
-def get_xls(start_date: date, start_kathisma: int, year: Optional[int]) -> str:
+def get_xls(start_date: date, start_kathisma: int, year: Optional[int] = None) -> str:
     if not year:
         year = start_date.year
     start_day_kathisma = start_date.timetuple().tm_yday
@@ -226,8 +229,8 @@ def get_xls(start_date: date, start_kathisma: int, year: Optional[int]) -> str:
     easter_day = get_easter_day(year)
     start_no_reading, end_no_reading = get_boundary_days(easter_day)
     number_days_in_year = get_number_days_in_year(year)
-    total_kathisma = 21
-    for number in range(1, total_kathisma):
+    total_kathisma = 20
+    for number in range(1, total_kathisma + 1):
         all_kathismas = {}
         ws = wb.create_sheet("Чтец {}".format(number))
         add_number_kathisma(ws, number)
