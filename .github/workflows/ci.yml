@@ -38,7 +38,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Code Quality
-        run: poetry run flakeheaven src/
+        run: poetry run flakeheaven lint src/
 
       - name: Code Quality Annatations
         run: poetry run mypy src/
