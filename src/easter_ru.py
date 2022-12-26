@@ -14,7 +14,10 @@ from src.const import OUT_FILE
 def get_easter_day(year: Optional[int] = None) -> date:
     if not year:
         year = utils.today().year
-    return easter.easter(year, EASTER_ORTHODOX)
+    easter_date = easter.easter(year, EASTER_ORTHODOX)
+    if easter_date < datetime.now().date():
+        easter_date = easter.easter(year + 1, EASTER_ORTHODOX)
+    return easter_date
 
 
 def get_header_of_month(ws: Worksheet) -> Worksheet:
@@ -61,8 +64,8 @@ def get_column_with_number_day(number_cell: int, ws: Worksheet) -> Worksheet:
     )
     for number in range(1, 32):
         number_cell += 1
-        cell_name_left = 'A{}'.format(number_cell)
-        cell_name_right = 'N{}'.format(number_cell)
+        cell_name_left = f'A{number_cell}'
+        cell_name_right = f'N{number_cell}'
         cell_value = number
         ws[cell_name_left] = cell_value
         ws[cell_name_right] = cell_value
@@ -202,13 +205,21 @@ def create_calendar_for_reader(
     frame_month = {(index + 1): symbol for index, symbol in enumerate(
         ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
     )}
+
+    frame_number_day_a = {num: f'A{num_cell}' for num, num_cell in enumerate(range(3, 34), 1)}
+    frame_number_day_n = {num: f'N{num_cell}' for num, num_cell in enumerate(range(3, 34), 1)}
+
+    for number in frame_number_day_n.keys():
+        ws[frame_number_day_a[number]] = number
+        ws[frame_number_day_n[number]] = number
+
     for month, days in calendar_table.items():
         cell_month = frame_month[month]
         cell_name_index = 2
         for day in days:
             cell_name_index += cell_step
-            cell_name = "{}{}".format(cell_month, cell_name_index)
-            datestr = '{} {} {}'.format(month, day, year)
+            cell_name = f'{cell_month}{cell_name_index}'
+            datestr = f'{month} {day} {year}'
             date = datetime.strptime(datestr, '%m %d %Y')
             day_now = date.strftime('%j')
             ws[cell_name] = all_kathisma.get(int(day_now), '')
@@ -217,7 +228,7 @@ def create_calendar_for_reader(
             cell_kathisma.font = font
 
 
-def get_xls(start_date: date, start_kathisma: int, year: Optional[int]) -> str:
+def get_xls(start_date: date, start_kathisma: int, year: Optional[int] = None) -> str:
     if not year:
         year = start_date.year
     start_day_kathisma = start_date.timetuple().tm_yday
@@ -226,14 +237,12 @@ def get_xls(start_date: date, start_kathisma: int, year: Optional[int]) -> str:
     easter_day = get_easter_day(year)
     start_no_reading, end_no_reading = get_boundary_days(easter_day)
     number_days_in_year = get_number_days_in_year(year)
-    total_kathisma = 21
-    for number in range(1, total_kathisma):
-        all_kathismas = {}
+    total_kathisma = 20
+    for number in range(1, total_kathisma + 1):
         ws = wb.create_sheet("Чтец {}".format(number))
         add_number_kathisma(ws, number)
         get_header_of_month(ws)
-        number_cell_for_column = number_days_in_year
-        get_column_with_number_day(number_cell_for_column, ws)
+        get_column_with_number_day(number_days_in_year, ws)
         if start_no_reading > start_date:
             all_kathismas = get_list_date(
                 start_no_reading,

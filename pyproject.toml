@@ -11,20 +11,52 @@ multi_line_output = 3
 use_parentheses = true
 include_trailing_comma = true
 
+[tool.flakeheaven]
+max-line-length = 120
+format = "colored"
+show_source = true
+docstring-convention = "pep257"
+max-complexity = 8
+extended_default_ignore = [""]
+
+[tool.flakeheaven.plugins]
+pyflakes = ["+*"]
+pycodestyle = ["+*", "-E203", "-E501", "-W503"]
+
+[tool.mypy]
+follow_imports = "silent"
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+check_untyped_defs = true
+no_implicit_reexport = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+show_error_codes = true
+namespace_packages = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+env_files = [".env", ".env.example"]
+filterwarnings = ["ignore::DeprecationWarning:distutils"]
+asyncio_mode="auto"
+
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.10"
 python-dateutil = "*"
 openpyxl = "*"
 uvicorn = "^0.16.0"
-fastapi = "^0.70.1"
+fastapi = "^0.75.2"
 Jinja2 = "^3.0.3"
 python-multipart = "^0.0.5"
 
-
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+mypy = "^0.991"
+bandit = "^1.7.4"
 isort = "^5.10.1"
-flake8 = "^4.0.1"
-mypy = "^0.930"
+flakeheaven = "^3.2.1"
 types-python-dateutil = "^2.8.4"
 aiohttp = "^3.8.1"
 pytest = "^6.2.5"
@@ -32,7 +64,7 @@ pytest-cov = "^3.0.0"
 pytest-asyncio = "^0.16.0"
 pytest-aiohttp = "^0.3.0"
 Faker = "^11.1.0"
-safety = "^1.10.3"
+safety = "^2.2.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
