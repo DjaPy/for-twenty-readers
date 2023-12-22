@@ -28,3 +28,4 @@ def test_get_xls():
     start_date = datetime.now().date()
     start_kathisma = 10
     result = get_xls(start_date, start_kathisma)
+    assert result
