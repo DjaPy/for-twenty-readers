@@ -65,9 +65,9 @@ flakeheaven: ## flakeheaven
 bandit:  # find common security issues in code
 	poetry run bandit -r ./$(NAME)
 
-.PHONY: safety
-safety: # checks your installed dependencies for known security vulnerabilities
-	poetry export --dev -f requirements.txt | poetry run safety check --stdin
+.PHONY: pip-audit
+pip-audit: # checks your installed dependencies for known security vulnerabilities
+	poetry run pip-audit
 
 .PHONY: mypy
 mypy: ## static type check
@@ -78,7 +78,7 @@ isort: ## sorted imports
 	poetry run isort ./$(NAME) ./tests
 
 .PHONY: lint
-lint: isort flakeheaven bandit mypy safety ## lint
+lint: isort flakeheaven bandit mypy pip-audit ## lint
 
 .PHONY: doc
 docs: venv clean-docs  ## Make documentation and open it in browser

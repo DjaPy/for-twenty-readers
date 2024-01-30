@@ -228,7 +228,7 @@ def create_calendar_for_reader(
             cell_kathisma.font = font
 
 
-def get_xls(start_date: date, start_kathisma: int, year: Optional[int] = None) -> str:
+def create_xls(start_date: date, start_kathisma: int, year: Optional[int] = None) -> str:
     if not year:
         year = start_date.year
     start_day_kathisma = start_date.timetuple().tm_yday

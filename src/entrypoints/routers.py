@@ -15,7 +15,7 @@ async def get_calendar(
     start_kathisma: int = Form(...),
     year: int = Form(...),
 ) -> Response:
-    await service_layer.create_calendar(start_date_kathisma, start_kathisma, year)
+    service_layer.create_calendar(start_date_kathisma, start_kathisma, year)
     return TEMPLATE.TemplateResponse('calendar.html', context=dict(request=request, year=year, start_date_kathisma=start_date_kathisma, start_kathisma=start_kathisma))
 
 
