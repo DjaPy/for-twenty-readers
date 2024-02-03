@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 
 from src.easter_ru import create_xls, get_calendar_for_table
 
@@ -29,4 +30,4 @@ def test_get_xls():
     start_kathisma = 10
     xls, path = create_xls(start_date, start_kathisma)
     assert xls
-    assert issubclass(path, str)
+    assert issubclass(path, Path)

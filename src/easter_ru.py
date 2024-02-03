@@ -1,5 +1,6 @@
 import itertools
 from datetime import date, datetime, timedelta
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 from dateutil import easter, utils
@@ -228,7 +229,7 @@ def create_calendar_for_reader(
             cell_kathisma.font = font
 
 
-def create_xls(start_date: date, start_kathisma: int, year: int | None = None) -> tuple[Workbook, str]:
+def create_xls(start_date: date, start_kathisma: int, year: int | None = None) -> tuple[Workbook, Path]:
     if not year:
         year = start_date.year
     start_day_kathisma = start_date.timetuple().tm_yday
