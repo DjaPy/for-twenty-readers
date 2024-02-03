@@ -1,5 +1,4 @@
 from datetime import datetime
-from pathlib import Path
 
 from src.easter_ru import create_xls, get_calendar_for_table
 

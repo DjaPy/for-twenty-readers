@@ -14,6 +14,7 @@ from src.const import OUT_FILE
 LEFT_BOARD_NO_READING_DAY = timedelta(days=3)
 RIGHT_BOARD_NO_READING_DAY = timedelta(days=6)
 CELL_ADDRESS_NUMBER_KATHISMA = 'A2'
+FONT_NUMBER_DAY = 'Trebuchet MS'
 
 
 def get_easter_day(year: int | None = None) -> date:
@@ -61,7 +62,7 @@ def add_column_with_number_day_to_ws(number_cell: int, ws: Worksheet) -> Workshe
         vertical='center',
     )
     font_number_day = Font(
-        name='Trebuchet MS',
+        name=FONT_NUMBER_DAY,
         size=12,
     )
     for number in range(1, 32):
@@ -83,11 +84,10 @@ def add_column_with_number_day_to_ws(number_cell: int, ws: Worksheet) -> Workshe
 
 def get_list_date(
     start_no_reading: date,
-    end_no_reading: date,
     start_kathisma: int,
     number_days_in_year: int,
 
-) -> Dict[int, int]:
+) -> dict[int, int]:
     """Gets a list of dates with an interval, when you do not need to read.
     """
     loop_from_total_kathisma = [number for number in range(1, 21)]
@@ -240,7 +240,6 @@ def create_xls(start_date: date, start_kathisma: int, year: int | None = None) -
         if start_no_reading > start_date:
             all_kathismas = get_list_date(
                 start_no_reading,
-                end_no_reading,
                 start_kathisma,
                 number_days_in_year,
             )
