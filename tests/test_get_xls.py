@@ -1,6 +1,7 @@
 from datetime import datetime
+from pathlib import Path
 
-from src.easter_ru import get_calendar_for_table, get_xls
+from src.easter_ru import create_xls, get_calendar_for_table
 
 data_calendar = {
     1: [],
@@ -27,5 +28,5 @@ def test_get_calendar_for_table():
 def test_get_xls():
     start_date = datetime.now().date()
     start_kathisma = 10
-    result = get_xls(start_date, start_kathisma)
-    assert result
+    xls, _ = create_xls(start_date, start_kathisma)
+    assert xls

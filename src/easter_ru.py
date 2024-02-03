@@ -1,6 +1,7 @@
 import itertools
 from datetime import date, datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Dict, List, Tuple
 
 from dateutil import easter, utils
 from dateutil.easter import EASTER_ORTHODOX
@@ -11,7 +12,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 from src.const import OUT_FILE
 
 
-def get_easter_day(year: Optional[int] = None) -> date:
+def get_easter_day(year: int | None = None) -> date:
     if not year:
         year = utils.today().year
     easter_date = easter.easter(year, EASTER_ORTHODOX)
@@ -228,7 +229,7 @@ def create_calendar_for_reader(
             cell_kathisma.font = font
 
 
-def get_xls(start_date: date, start_kathisma: int, year: Optional[int] = None) -> str:
+def create_xls(start_date: date, start_kathisma: int, year: int | None = None) -> tuple[Workbook, Path]:
     if not year:
         year = start_date.year
     start_day_kathisma = start_date.timetuple().tm_yday
@@ -258,6 +259,6 @@ def get_xls(start_date: date, start_kathisma: int, year: Optional[int] = None) -
         if start_kathisma > 19:
             start_kathisma = 0
         start_kathisma += 1
-
+    wb.remove_sheet(wb.worksheets[0])
     wb.save(filename=OUT_FILE)
-    return str(OUT_FILE)
+    return wb, OUT_FILE
