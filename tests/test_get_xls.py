@@ -27,4 +27,6 @@ def test_get_calendar_for_table():
 def test_get_xls():
     start_date = datetime.now().date()
     start_kathisma = 10
-    return create_xls(start_date, start_kathisma)
+    xls, path = create_xls(start_date, start_kathisma)
+    assert xls
+    assert issubclass(path, str)
