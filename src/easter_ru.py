@@ -1,7 +1,7 @@
 import itertools
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple
 
 from dateutil import easter, utils
 from dateutil.easter import EASTER_ORTHODOX
@@ -10,6 +10,10 @@ from openpyxl.styles import Alignment, Border, Font, Side
 from openpyxl.worksheet.worksheet import Worksheet
 
 from src.const import OUT_FILE
+
+LEFT_BOARD_NO_READING_DAY = timedelta(days=3)
+RIGHT_BOARD_NO_READING_DAY = timedelta(days=6)
+CELL_ADDRESS_NUMBER_KATHISMA = 'A2'
 
 
 def get_easter_day(year: int | None = None) -> date:
@@ -21,7 +25,7 @@ def get_easter_day(year: int | None = None) -> date:
     return easter_date
 
 
-def get_header_of_month(ws: Worksheet) -> Worksheet:
+def add_header_of_month_to_ws(ws: Worksheet) -> Worksheet:
     alignment_month = Alignment(
         horizontal='center',
         vertical='center',
@@ -31,12 +35,12 @@ def get_header_of_month(ws: Worksheet) -> Worksheet:
         size=16,
         color='00FF8080',
     )
-    month_name = {
+    cell_address2month_name = {
         "B2": "ЯНВ", "C2": "ФЕВ", "D2": "МАРТ", "E2": "АПР",
         "F2": "МАЙ", "G2": "ИЮН", "H2": "ИЮЛ", "I2": "АВГ",
         "J2": "СЕН", "K2": "ОКТ", "L2": "НОЯ", "M2": "ДЕК"
     }
-    for cell_name, cell_value in month_name.items():
+    for cell_name, cell_value in cell_address2month_name.items():
         ws[cell_name] = cell_value
         cell = ws[cell_name]
         cell.alignment = alignment_month
@@ -46,15 +50,12 @@ def get_header_of_month(ws: Worksheet) -> Worksheet:
 
 
 def get_number_days_in_year(year: int) -> int:
-    days_leap_year = 366
-    days_normal_year = 365
-    definition_year = ((year % 4 == 0 and year % 100 != 0) or (year % 400 == 0))
-    if definition_year:
-        return days_leap_year
-    return days_normal_year
+    definition_leap_year_map = {True: 366, False: 365}
+    is_leap_year = ((year % 4 == 0 and year % 100 != 0) or (year % 400 == 0))
+    return definition_leap_year_map[is_leap_year]
 
 
-def get_column_with_number_day(number_cell: int, ws: Worksheet) -> Worksheet:
+def add_column_with_number_day_to_ws(number_cell: int, ws: Worksheet) -> Worksheet:
     alignment_number_day = Alignment(
         horizontal='center',
         vertical='center',
@@ -93,8 +94,8 @@ def get_list_date(
     step_kathisma: int = 1
     zero_loop_first = {(day + 1): kathisma for day, kathisma in enumerate(range(start_kathisma, 21))}
     start_loop_first = len(zero_loop_first) + step_kathisma
-    end_loop_first = int(start_no_reading.strftime('%j')) - 1
-    start_zero_loop_second = int(end_no_reading.strftime('%j')) + 1
+    end_loop_first = start_no_reading.timetuple().tm_yday - 1
+    start_zero_loop_second = start_no_reading.timetuple().tm_yday + 1
     gen_loop_first = [day for day in range(start_loop_first, (end_loop_first + 1))]
     loop_first = {
         day: kathisma for day, kathisma in zip(gen_loop_first, itertools.cycle(loop_from_total_kathisma))
@@ -110,13 +111,7 @@ def get_list_date(
     loop_second = {
         day: kathisma for day, kathisma in zip(gen_loop_second, itertools.cycle(loop_from_total_kathisma))
     }
-    all_year_loop = {}
-    all_year_loop.update(zero_loop_first)
-    all_year_loop.update(loop_first)
-    all_year_loop.update(zero_loop_second)
-    all_year_loop.update(loop_second)
-
-    return all_year_loop
+    return zero_loop_first | loop_first | zero_loop_second | loop_second
 
 
 def get_list_date_without_easter(start_day: int, end_no_reading: date, number_days_in_year: int) -> Dict[int, int]:
@@ -143,15 +138,13 @@ def get_list_date_without_easter(start_day: int, end_no_reading: date, number_da
 
 
 def get_boundary_days(easter_day: date) -> Tuple[date, date]:
-    start_no_reading = easter_day - timedelta(days=3)
-    end_no_reading = easter_day + timedelta(days=6)
-    return start_no_reading, end_no_reading
+    return easter_day - LEFT_BOARD_NO_READING_DAY, easter_day + RIGHT_BOARD_NO_READING_DAY
 
 
-def get_calendar_for_table(start_calendar_date: date, year: int) -> Dict[int, List[int]]:
+def get_calendar_for_table(start_calendar_date: date, year: int) -> dict[int, list[int]]:
     current_day = start_calendar_date
     table_year = {}
-    current_day_list: List[int] = []
+    current_day_list: list[int] = []
     current_month = 1
 
     while current_day.year == year:
@@ -165,7 +158,7 @@ def get_calendar_for_table(start_calendar_date: date, year: int) -> Dict[int, Li
     return table_year
 
 
-def add_number_kathisma(ws: Worksheet, number: int) -> None:
+def add_kathisma_numbers_to_worksheet(ws: Worksheet, number: int) -> None:
     alignment_num_kathisma = Alignment(
         horizontal='center',
         vertical='center',
@@ -181,17 +174,16 @@ def add_number_kathisma(ws: Worksheet, number: int) -> None:
         right=Side(border_style='dashed', color='00000000'),
 
     )
-    ws['A2'] = number
-    cell_kathisma = ws['A2']
-    cell_kathisma.alignment = alignment_num_kathisma
-    cell_kathisma.font = font_num_kathisma
-    cell_kathisma.border = border_num_kathisma
+    ws[CELL_ADDRESS_NUMBER_KATHISMA] = number
+    ws[CELL_ADDRESS_NUMBER_KATHISMA].alignment = alignment_num_kathisma
+    ws[CELL_ADDRESS_NUMBER_KATHISMA].font = font_num_kathisma
+    ws[CELL_ADDRESS_NUMBER_KATHISMA].border = border_num_kathisma
 
 
-def create_calendar_for_reader(
+def create_calendar_for_reader_to_ws(
     ws: Worksheet,
-    calendar_table: Dict[int, List[int]],
-    all_kathisma: Dict[int, int],
+    calendar_table: dict[int, list[int]],
+    all_kathisma: dict[int, int],
     year: int
 ) -> None:
     alignment = Alignment(
@@ -220,13 +212,14 @@ def create_calendar_for_reader(
         for day in days:
             cell_name_index += cell_step
             cell_name = f'{cell_month}{cell_name_index}'
-            datestr = f'{month} {day} {year}'
-            date = datetime.strptime(datestr, '%m %d %Y')
-            day_now = date.strftime('%j')
+            target_date = datetime(year, month, day)
+            day_now = target_date.timetuple().tm_yday
             ws[cell_name] = all_kathisma.get(int(day_now), '')
             cell_kathisma = ws[cell_name]
             cell_kathisma.alignment = alignment
             cell_kathisma.font = font
+            # fixes bug related with create double frame number_day_{a,n}
+            ws.delete_rows(367, 1)
 
 
 def create_xls(start_date: date, start_kathisma: int, year: int | None = None) -> tuple[Workbook, Path]:
@@ -240,10 +233,10 @@ def create_xls(start_date: date, start_kathisma: int, year: int | None = None) -
     number_days_in_year = get_number_days_in_year(year)
     total_kathisma = 20
     for number in range(1, total_kathisma + 1):
-        ws = wb.create_sheet("Чтец {}".format(number))
-        add_number_kathisma(ws, number)
-        get_header_of_month(ws)
-        get_column_with_number_day(number_days_in_year, ws)
+        ws = wb.create_sheet("Чтец {number}".format(number=number))
+        add_kathisma_numbers_to_worksheet(ws, number)
+        add_header_of_month_to_ws(ws)
+        add_column_with_number_day_to_ws(number_days_in_year, ws)
         if start_no_reading > start_date:
             all_kathismas = get_list_date(
                 start_no_reading,
@@ -255,7 +248,7 @@ def create_xls(start_date: date, start_kathisma: int, year: int | None = None) -
             all_kathismas = get_list_date_without_easter(
                 start_day_kathisma, end_no_reading, number_days_in_year
             )
-        create_calendar_for_reader(ws, calendar_table, all_kathismas, year)
+        create_calendar_for_reader_to_ws(ws, calendar_table, all_kathismas, year)
         if start_kathisma > 19:
             start_kathisma = 0
         start_kathisma += 1
