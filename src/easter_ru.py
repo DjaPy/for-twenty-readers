@@ -70,8 +70,8 @@ def add_column_with_number_day_to_ws(number_cell: int, ws: Worksheet) -> Workshe
         cell_name_left = f'A{number_cell}'
         cell_name_right = f'N{number_cell}'
         cell_value = number
-        ws[cell_name_left] = cell_value
-        ws[cell_name_right] = cell_value
+        ws[cell_name_left] = str(cell_value)
+        ws[cell_name_right] = str(cell_value)
         right_cell = ws[cell_name_right]
         left_cell = ws[cell_name_left]
         right_cell.alignment = alignment_number_day
@@ -164,7 +164,7 @@ def add_kathisma_numbers_to_worksheet(ws: Worksheet, number: int) -> None:
         vertical='center',
     )
     font_num_kathisma = Font(
-        name='Trebuchet MS',
+        name=FONT_NUMBER_DAY,
         size=16,
     )
     border_num_kathisma = Border(
@@ -174,7 +174,7 @@ def add_kathisma_numbers_to_worksheet(ws: Worksheet, number: int) -> None:
         right=Side(border_style='dashed', color='00000000'),
 
     )
-    ws[CELL_ADDRESS_NUMBER_KATHISMA] = number
+    ws[CELL_ADDRESS_NUMBER_KATHISMA] = str(number)
     ws[CELL_ADDRESS_NUMBER_KATHISMA].alignment = alignment_num_kathisma
     ws[CELL_ADDRESS_NUMBER_KATHISMA].font = font_num_kathisma
     ws[CELL_ADDRESS_NUMBER_KATHISMA].border = border_num_kathisma
@@ -191,7 +191,7 @@ def create_calendar_for_reader_to_ws(
         vertical='center',
     )
     font = Font(
-        name='Trebuchet MS',
+        name=FONT_NUMBER_DAY,
         size=14,
     )
     cell_step = 1
@@ -203,8 +203,9 @@ def create_calendar_for_reader_to_ws(
     frame_number_day_n = {num: f'N{num_cell}' for num, num_cell in enumerate(range(3, 34), 1)}
 
     for number in frame_number_day_n.keys():
-        ws[frame_number_day_a[number]] = number
-        ws[frame_number_day_n[number]] = number
+        number_str = str(number)
+        ws[frame_number_day_a[number]] = number_str
+        ws[frame_number_day_n[number]] = number_str
 
     for month, days in calendar_table.items():
         cell_month = frame_month[month]
