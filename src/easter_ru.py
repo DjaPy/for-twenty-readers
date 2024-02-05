@@ -55,6 +55,35 @@ def get_number_days_in_year(year: int) -> int:
     return definition_leap_year_map[is_leap_year]
 
 
+def get_list_date(
+    start_no_reading: date,
+    end_no_reading: date,
+    start_kathisma: int,
+    number_days_in_year: int,
+) -> dict[int, int]:
+    """Gets a list of dates with an interval, when you do not need to read.
+    """
+    loop_from_total_kathisma = [number for number in range(1, 21)]
+    step_kathisma: int = 1
+    zero_loop_first = {(day + 1): kathisma for day, kathisma in enumerate(range(start_kathisma, 21))}
+    start_loop_first = len(zero_loop_first) + step_kathisma
+    end_loop_first = start_no_reading.timetuple().tm_yday - 1
+    start_zero_loop_second = end_no_reading.timetuple().tm_yday + 1
+    gen_loop_first = [day for day in range(start_loop_first, (end_loop_first + 1))]
+    loop_first = {
+        day: kathisma for day, kathisma in zip(gen_loop_first, itertools.cycle(loop_from_total_kathisma))
+    }
+    end_number_kathisma_first_loop = loop_first[end_loop_first]
+    loop_second, zero_loop_second = get_calendar_dict(
+        end_number_kathisma_first_loop,
+        loop_from_total_kathisma,
+        number_days_in_year,
+        start_zero_loop_second,
+        step_kathisma,
+    )
+    return zero_loop_first | loop_first | zero_loop_second | loop_second
+
+
 def add_column_with_number_day_to_ws(number_cell: int, ws: Worksheet) -> Worksheet:
     alignment_number_day = Alignment(
         horizontal='center',
@@ -79,35 +108,6 @@ def add_column_with_number_day_to_ws(number_cell: int, ws: Worksheet) -> Workshe
         left_cell.font = font_number_day
 
     return ws
-
-
-def get_list_date(
-    start_no_reading: date,
-    start_kathisma: int,
-    number_days_in_year: int,
-
-) -> dict[int, int]:
-    """Gets a list of dates with an interval, when you do not need to read.
-    """
-    loop_from_total_kathisma = [number for number in range(1, 21)]
-    step_kathisma: int = 1
-    zero_loop_first = {(day + 1): kathisma for day, kathisma in enumerate(range(start_kathisma, 21))}
-    start_loop_first = len(zero_loop_first) + step_kathisma
-    end_loop_first = start_no_reading.timetuple().tm_yday - 1
-    start_zero_loop_second = start_no_reading.timetuple().tm_yday + 1
-    gen_loop_first = [day for day in range(start_loop_first, (end_loop_first + 1))]
-    loop_first = {
-        day: kathisma for day, kathisma in zip(gen_loop_first, itertools.cycle(loop_from_total_kathisma))
-    }
-    end_number_kathisma_first_loop = loop_first[end_loop_first]
-    loop_second, zero_loop_second = get_calendar_dict(
-        end_number_kathisma_first_loop,
-        loop_from_total_kathisma,
-        number_days_in_year,
-        start_zero_loop_second,
-        step_kathisma,
-    )
-    return zero_loop_first | loop_first | zero_loop_second | loop_second
 
 
 def get_calendar_dict(
@@ -222,12 +222,12 @@ def create_calendar_for_reader_to_ws(
             cell_name = f'{cell_month}{cell_name_index}'
             target_date = datetime(year, month, day)
             day_now = target_date.timetuple().tm_yday
-            ws[cell_name] = all_kathisma.get(int(day_now), '')
+            ws[cell_name] = all_kathisma.get(day_now, '')
             cell_kathisma = ws[cell_name]
             cell_kathisma.alignment = alignment
             cell_kathisma.font = font
             # fixes bug related with create double frame number_day_{a,n}
-            ws.delete_rows(367, 1)
+            ws.delete_rows(366, 1)
 
 
 def create_xls(start_date: date, start_kathisma: int, year: int | None = None) -> tuple[Workbook, Path]:
@@ -241,13 +241,14 @@ def create_xls(start_date: date, start_kathisma: int, year: int | None = None) -
     number_days_in_year = get_number_days_in_year(year)
     total_kathisma = 20
     for number in range(1, total_kathisma + 1):
-        ws = wb.create_sheet("Чтец {number}".format(number=number))
+        ws = wb.create_sheet(f"Чтец {number}")
         add_kathisma_numbers_to_worksheet(ws, number)
         add_header_of_month_to_ws(ws)
         add_column_with_number_day_to_ws(number_days_in_year, ws)
         if start_no_reading > start_date:
             all_kathismas = get_list_date(
                 start_no_reading,
+                end_no_reading,
                 start_kathisma,
                 number_days_in_year,
             )
