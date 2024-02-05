@@ -1,7 +1,6 @@
 import itertools
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from typing import Dict, Tuple
 
 from dateutil import easter, utils
 from dateutil.easter import EASTER_ORTHODOX
@@ -101,6 +100,23 @@ def get_list_date(
         day: kathisma for day, kathisma in zip(gen_loop_first, itertools.cycle(loop_from_total_kathisma))
     }
     end_number_kathisma_first_loop = loop_first[end_loop_first]
+    loop_second, zero_loop_second = get_calendar_dict(
+        end_number_kathisma_first_loop,
+        loop_from_total_kathisma,
+        number_days_in_year,
+        start_zero_loop_second,
+        step_kathisma,
+    )
+    return zero_loop_first | loop_first | zero_loop_second | loop_second
+
+
+def get_calendar_dict(
+        end_number_kathisma_first_loop: int,
+        loop_from_total_kathisma: list[int],
+        number_days_in_year: int,
+        start_zero_loop_second: int,
+        step_kathisma: int = 1,
+) -> tuple[dict[int, int], dict[int, int]]:
     start_number_kathisma_zero_loop_second = end_number_kathisma_first_loop + step_kathisma
     zero_loop_second = {
         (start_zero_loop_second + day): kathisma for day, kathisma in
@@ -111,33 +127,24 @@ def get_list_date(
     loop_second = {
         day: kathisma for day, kathisma in zip(gen_loop_second, itertools.cycle(loop_from_total_kathisma))
     }
-    return zero_loop_first | loop_first | zero_loop_second | loop_second
+    return loop_second, zero_loop_second
 
 
-def get_list_date_without_easter(start_day: int, end_no_reading: date, number_days_in_year: int) -> Dict[int, int]:
-    start_zero_loop_second = int(end_no_reading.strftime('%j')) + 1
+def get_list_date_without_easter(start_day: int, end_no_reading: date, number_days_in_year: int) -> dict[int, int]:
+    start_zero_loop_second = end_no_reading.timetuple().tm_yday + 1
     if start_day < start_zero_loop_second:
-        start_day = start_zero_loop_second
+        start_zero_loop_second = start_day
     loop_from_total_kathisma = [number for number in range(1, 21)]
-    step_kathisma: int = 1
-    start_number_kathisma_zero_loop_second = start_day + step_kathisma
-    zero_loop_second = {
-        (start_day + day): kathisma for day, kathisma in
-        enumerate(range(start_number_kathisma_zero_loop_second, 21))
-    }
-    start_loop_second = start_zero_loop_second + len(zero_loop_second)
-    gen_loop_second = [day for day in range(start_loop_second, (number_days_in_year + 1))]
-    loop_second = {
-        day: kathisma for day, kathisma in zip(gen_loop_second, itertools.cycle(loop_from_total_kathisma))
-    }
-    all_year_loop = {}
-    all_year_loop.update(zero_loop_second)
-    all_year_loop.update(loop_second)
-
-    return all_year_loop
+    loop_second, zero_loop_second = get_calendar_dict(
+        start_day,
+        loop_from_total_kathisma,
+        number_days_in_year,
+        start_zero_loop_second,
+    )
+    return zero_loop_second | loop_second
 
 
-def get_boundary_days(easter_day: date) -> Tuple[date, date]:
+def get_boundary_days(easter_day: date) -> tuple[date, date]:
     return easter_day - LEFT_BOARD_NO_READING_DAY, easter_day + RIGHT_BOARD_NO_READING_DAY
 
 
