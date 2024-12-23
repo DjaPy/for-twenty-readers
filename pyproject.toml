@@ -47,12 +47,12 @@ asyncio_mode="auto"
 [tool.poetry.dependencies]
 python = "^3.10"
 python-dateutil = "*"
-openpyxl = "^3.1.2"
-uvicorn = "^0.29.0"
-fastapi = "^0.110.2"
+openpyxl = "^3.1.5"
+uvicorn = "^0.34.0"
+fastapi = "^0.115.6"
 Jinja2 = "^3.0.3"
-python-multipart = "^0.0.9"
-pydantic-settings = "^2.2.1"
+python-multipart = "^0.0.20"
+pydantic-settings = "^2.7.0"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.7.1"
