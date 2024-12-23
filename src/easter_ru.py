@@ -56,32 +56,45 @@ def get_number_days_in_year(year: int) -> int:
 
 
 def get_list_date(
+    start_date: date,
     start_no_reading: date,
     end_no_reading: date,
     start_kathisma: int,
     number_days_in_year: int,
 ) -> dict[int, int]:
-    """Gets a list of dates with an interval, when you do not need to read.
-    """
+    """Gets a list of dates with an interval, when you do not need to read."""
     loop_from_total_kathisma = [number for number in range(1, 21)]
-    step_kathisma: int = 1
-    zero_loop_first = {(day + 1): kathisma for day, kathisma in enumerate(range(start_kathisma, 21))}
-    start_loop_first = len(zero_loop_first) + step_kathisma
-    end_loop_first = start_no_reading.timetuple().tm_yday - 1
+    step_kathisma = 1
     start_zero_loop_second = end_no_reading.timetuple().tm_yday + 1
-    gen_loop_first = [day for day in range(start_loop_first, (end_loop_first + 1))]
-    loop_first = {
-        day: kathisma for day, kathisma in zip(gen_loop_first, itertools.cycle(loop_from_total_kathisma))
-    }
-    end_number_kathisma_first_loop = loop_first[end_loop_first]
+    if start_no_reading > start_date:
+
+        zero_loop_first = {day: kathisma for day, kathisma in enumerate(range(start_kathisma, 21), start=1)}
+        start_loop_first = len(zero_loop_first) + step_kathisma
+        end_loop_first = start_no_reading.timetuple().tm_yday - 1
+        gen_loop_first = [day for day in range(start_loop_first, (end_loop_first + 1))]
+        loop_first = {
+            day: kathisma for day, kathisma in zip(gen_loop_first, itertools.cycle(loop_from_total_kathisma))
+        }
+        end_number_kathisma_first_loop = loop_first[end_loop_first]
+        loop_second, zero_loop_second = get_calendar_dict(
+            end_number_kathisma_first_loop,
+            loop_from_total_kathisma,
+            number_days_in_year,
+            start_zero_loop_second,
+            step_kathisma,
+        )
+        return zero_loop_first | loop_first | zero_loop_second | loop_second
+    start_day_kathisma = start_date.timetuple().tm_yday
+    if start_day_kathisma < start_zero_loop_second:
+        start_zero_loop_second = start_day_kathisma
     loop_second, zero_loop_second = get_calendar_dict(
-        end_number_kathisma_first_loop,
+        start_day_kathisma,
         loop_from_total_kathisma,
         number_days_in_year,
         start_zero_loop_second,
         step_kathisma,
     )
-    return zero_loop_first | loop_first | zero_loop_second | loop_second
+    return zero_loop_second | loop_second
 
 
 def add_column_with_number_day_to_ws(number_cell: int, ws: Worksheet) -> Worksheet:
@@ -115,8 +128,9 @@ def get_calendar_dict(
         loop_from_total_kathisma: list[int],
         number_days_in_year: int,
         start_zero_loop_second: int,
-        step_kathisma: int = 1,
+        step_kathisma: int,
 ) -> tuple[dict[int, int], dict[int, int]]:
+
     start_number_kathisma_zero_loop_second = end_number_kathisma_first_loop + step_kathisma
     zero_loop_second = {
         (start_zero_loop_second + day): kathisma for day, kathisma in
@@ -130,26 +144,11 @@ def get_calendar_dict(
     return loop_second, zero_loop_second
 
 
-def get_list_date_without_easter(start_day: int, end_no_reading: date, number_days_in_year: int) -> dict[int, int]:
-    start_zero_loop_second = end_no_reading.timetuple().tm_yday + 1
-    if start_day < start_zero_loop_second:
-        start_zero_loop_second = start_day
-    loop_from_total_kathisma = [number for number in range(1, 21)]
-    loop_second, zero_loop_second = get_calendar_dict(
-        start_day,
-        loop_from_total_kathisma,
-        number_days_in_year,
-        start_zero_loop_second,
-    )
-    return zero_loop_second | loop_second
-
-
 def get_boundary_days(easter_day: date) -> tuple[date, date]:
     return easter_day - LEFT_BOARD_NO_READING_DAY, easter_day + RIGHT_BOARD_NO_READING_DAY
 
 
-def get_calendar_for_table(start_calendar_date: date, year: int) -> dict[int, list[int]]:
-    current_day = start_calendar_date
+def get_calendar_for_table(current_day: date, year: int) -> dict[int, list[int]]:
     table_year = {}
     current_day_list: list[int] = []
     current_month = 1
@@ -202,8 +201,9 @@ def create_calendar_for_reader_to_ws(
         size=14,
     )
     cell_step = 1
-    frame_month = {(index + 1): symbol for index, symbol in enumerate(
-        ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M']
+    frame_month = {index: symbol for index, symbol in enumerate(
+        ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'],
+        start=1,
     )}
 
     frame_number_day_a = {num: f'A{num_cell}' for num, num_cell in enumerate(range(3, 34), 1)}
@@ -233,7 +233,6 @@ def create_calendar_for_reader_to_ws(
 def create_xls(start_date: date, start_kathisma: int, year: int | None = None) -> tuple[Workbook, Path]:
     if not year:
         year = start_date.year
-    start_day_kathisma = start_date.timetuple().tm_yday
     wb = Workbook()
     calendar_table = get_calendar_for_table(start_date, year)
     easter_day = get_easter_day(year)
@@ -245,17 +244,13 @@ def create_xls(start_date: date, start_kathisma: int, year: int | None = None) -
         add_kathisma_numbers_to_worksheet(ws, number)
         add_header_of_month_to_ws(ws)
         add_column_with_number_day_to_ws(number_days_in_year, ws)
-        if start_no_reading > start_date:
-            all_kathismas = get_list_date(
-                start_no_reading,
-                end_no_reading,
-                start_kathisma,
-                number_days_in_year,
-            )
-        else:
-            all_kathismas = get_list_date_without_easter(
-                start_day_kathisma, end_no_reading, number_days_in_year
-            )
+        all_kathismas = get_list_date(
+            start_date,
+            start_no_reading,
+            end_no_reading,
+            start_kathisma,
+            number_days_in_year,
+        )
         create_calendar_for_reader_to_ws(ws, calendar_table, all_kathismas, year)
         if start_kathisma > 19:
             start_kathisma = 0
